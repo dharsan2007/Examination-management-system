@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VET IAS - Examination Management System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <canvas id="bgCanvas"></canvas>
+  <div id="toast-container"></div>
+
+  <!-- ============================================================
+       EDIT BATCH MODAL
+  ============================================================ -->
+  <div id="editBatchModal" class="modal-overlay" style="display:none;" onclick="closeEditBatchModal(event)">
+    <div class="modal-box">
+      <div class="modal-head">
+        <i class="fa-solid fa-pen-to-square"></i>
+        <span>Edit Batch</span>
+        <button class="modal-close-btn" onclick="document.getElementById('editBatchModal').style.display='none'">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editBatchId">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="form-field">
+            <label class="form-label">Year</label>
+            <select id="editBatchYear" class="inp" onchange="autoFillEditPrefix()">
+              <option value="">— Year —</option>
+              <option value="I">I Year</option>
+              <option value="II">II Year</option>
+              <option value="III">III Year</option>
+              <option value="IV">IV Year</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Department</label>
+            <select id="editBatchDept" class="inp" onchange="autoFillEditPrefix()">
+              <option value="">— Dept —</option>
+              <option value="CSE">CSE</option><option value="ECE">ECE</option>
+              <option value="EEE">EEE</option><option value="MECH">MECH</option>
+              <option value="CIVIL">CIVIL</option><option value="IT">IT</option>
+              <option value="AIDS">AIDS</option><option value="AIML">AIML</option>
+              <option value="MCE">MCE</option><option value="BCA">BCA</option>
+              <option value="MCA">MCA</option><option value="MBA">MBA</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Subject</label>
+            <select id="editBatchSubject" class="inp"></select>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Prefix</label>
+            <input id="editBatchPrefix" type="text" class="inp" placeholder="e.g., 24AID">
+          </div>
+          <div class="form-field">
+            <label class="form-label">Start No.</label>
+            <input id="editBatchStart" type="number" class="inp" min="1">
+          </div>
+          <div class="form-field">
+            <label class="form-label">End No.</label>
+            <input id="editBatchEnd" type="number" class="inp" min="1">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button onclick="document.getElementById('editBatchModal').style.display='none'" class="action-btn secondary">Cancel</button>
+        <button onclick="saveEditBatch()" class="action-btn save">
+          <i class="fa-solid fa-floppy-disk"></i> Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT STAFF MODAL -->
+  <div id="editStaffModal" class="modal-overlay" style="display:none;" onclick="closeEditStaffModal(event)">
+    <div class="modal-box" style="max-width:400px;">
+      <div class="modal-head">
+        <i class="fa-solid fa-user-pen"></i><span>Edit Staff</span>
+        <button class="modal-close-btn" onclick="document.getElementById('editStaffModal').style.display='none'"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editStaffId">
+        <div class="form-field" style="margin-bottom:12px;">
+          <label class="form-label"><i class="fa-solid fa-user"></i> Username</label>
+          <input id="editStaffUsername" type="text" class="inp" readonly style="background:#f1f5f9;color:#64748b;">
+        </div>
+        <div class="form-field" style="margin-bottom:12px;">
+          <label class="form-label"><i class="fa-solid fa-lock"></i> New Password &nbsp;<span style="font-size:11px;color:#94a3b8;">(leave blank to keep)</span></label>
+          <input id="editStaffPassword" type="text" class="inp" placeholder="Enter new password">
+        </div>
+        <div class="form-field">
+          <label class="form-label"><i class="fa-solid fa-building"></i> Assigned Hall</label>
+          <select id="editStaffHall" class="inp"><option value="">— No Hall —</option></select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button onclick="document.getElementById('editStaffModal').style.display='none'" class="action-btn secondary">Cancel</button>
+        <button onclick="saveEditStaff()" class="action-btn save"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       HALL ASSIGNMENT MODAL
+  ============================================================ -->
+  <div id="hallAssignModal" class="modal-overlay" style="display:none;" onclick="closeHallAssignModal(event)">
+    <div class="modal-box">
+      <div class="modal-head">
+        <i class="fa-solid fa-link"></i>
+        <span>Assign Hall to Staff</span>
+        <button class="modal-close-btn" onclick="closeHallAssignModal()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="modalStaffName" class="modal-staff-label"></div>
+        <label class="modal-field-label"><i class="fa-solid fa-building"></i> Select Examination Hall</label>
+        <select id="modalHallSelect" class="inp modal-select">
+          <option value="">— Choose a Hall —</option>
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button onclick="closeHallAssignModal()" class="action-btn secondary">Cancel</button>
+        <button onclick="confirmHallAssign()" class="action-btn primary">
+          <i class="fa-solid fa-check"></i> Assign Hall
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       ADD SUBJECT MODAL
+  ============================================================ -->
+  <div id="addSubjectModal" class="modal-overlay" style="display:none;" onclick="closeAddSubjectModal(event)">
+    <div class="modal-box" style="max-width:420px;">
+      <div class="modal-head">
+        <i class="fa-solid fa-book-open-reader"></i>
+        <span>Add New Subject</span>
+        <button class="modal-close-btn" onclick="document.getElementById('addSubjectModal').style.display='none'">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-field">
+          <label class="form-label"><i class="fa-solid fa-pen"></i> Subject Name</label>
+          <input id="newSubjectInput" type="text" class="inp" placeholder="e.g., Software Engineering"
+            autocomplete="off" onkeydown="if(event.key==='Enter') confirmAddSubject()">
+        </div>
+        <div id="customSubjectsList" style="margin-top:14px;"></div>
+      </div>
+      <div class="modal-footer">
+        <button onclick="document.getElementById('addSubjectModal').style.display='none'" class="action-btn secondary">Cancel</button>
+        <button onclick="confirmAddSubject()" class="action-btn primary">
+          <i class="fa-solid fa-plus"></i> Add Subject
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       LOGIN SECTION
+  ============================================================ -->
+  <div id="loginSection" class="login-wrap">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="logo-mark">
+          <img src="/static/vetias.jpeg" alt="VET IAS Logo"
+            onerror="this.style.display='none';this.parentElement.innerHTML='<i class=\'fa-solid fa-graduation-cap\'></i>'">
+        </div>
+        <h1>VET IAS</h1>
+        <p class="tagline">Examination Management System</p>
+      </div>
+
+      <div class="role-selector">
+        <button onclick="showLogin('admin')" class="role-btn active" id="btn-admin">
+          <i class="fa-solid fa-shield-halved"></i> Admin
+        </button>
+        <button onclick="showLogin('staff')" class="role-btn" id="btn-staff">
+          <i class="fa-solid fa-clipboard-user"></i> Staff
+        </button>
+      </div>
+
+      <div class="login-body">
+        <div id="input-admin" class="input-group">
+          <div class="input-wrap">
+            <i class="fa-solid fa-user"></i>
+            <input type="text" id="adminUser" placeholder="Username" class="main-input" autocomplete="off">
+          </div>
+          <div class="input-wrap" style="position:relative;">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" id="adminPass" placeholder="Password" class="main-input" autocomplete="off">
+            <button type="button" class="eye-toggle-btn" onclick="togglePassword('adminPass', this)" tabindex="-1" title="Show/Hide password">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <div id="input-staff" class="input-group" style="display:none">
+          <div class="input-wrap">
+            <i class="fa-solid fa-user"></i>
+            <input type="text" id="staffUser" placeholder="Username" class="main-input" autocomplete="off">
+          </div>
+          <div class="input-wrap" style="position:relative;">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" id="staffPass" placeholder="Password" class="main-input" autocomplete="off">
+            <button type="button" class="eye-toggle-btn" onclick="togglePassword('staffPass', this)" tabindex="-1" title="Show/Hide password">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <button class="main-login-btn" onclick="handleLogin()">
+          Sign In <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       ADMIN DASHBOARD
+  ============================================================ -->
+  <div id="adminDashboard" class="dashboard-container" style="display:none">
+    <nav class="nav-bar">
+      <div class="logo">
+        <img src="/static/vetias.jpeg" alt="VET IAS" class="nav-logo-img" onerror="this.style.display='none'">
+        <span class="logo-text">VET <b>IAS</b></span>
+      </div>
+      <div class="nav-actions">
+        <button onclick="refreshAdmin()" class="nav-btn ghost" id="adminRefreshBtn">
+          <i class="fa-solid fa-rotate-right"></i> Refresh
+        </button>
+        <button onclick="logout()" class="nav-btn danger">
+          <i class="fa-solid fa-power-off"></i> Logout
+        </button>
+      </div>
+    </nav>
+
+    <div class="wrap">
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-icon s-purple"><i class="fa-solid fa-building"></i></div>
+          <div><span class="stat-val" id="statHalls">0</span><span class="stat-label">Examination Halls</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon s-green"><i class="fa-solid fa-chair"></i></div>
+          <div><span class="stat-val" id="statCap">0</span><span class="stat-label">Total Capacity</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon s-amber"><i class="fa-solid fa-users"></i></div>
+          <div><span class="stat-val" id="statStu">0</span><span class="stat-label">Students Allocated</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon s-red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+          <div><span class="stat-val" id="statMal">0</span><span class="stat-label">Incident Reports</span></div>
+        </div>
+      </div>
+
+      <div class="monitor-bar">
+        <span class="monitor-title"><i class="fa-solid fa-circle-dot" style="color:#10b981"></i> Live Attendance Monitor</span>
+        <div class="monitor-pills">
+          <span class="pill pill-p"><i class="fa-solid fa-check"></i> Present <b id="monP">0</b></span>
+          <span class="pill pill-a"><i class="fa-solid fa-xmark"></i> Absent <b id="monA">0</b></span>
+          <span class="pill pill-l"><i class="fa-solid fa-clock"></i> Late <b id="monL">0</b></span>
+          <span class="pill pill-od"><i class="fa-solid fa-file-alt"></i> On Duty <b id="monOD">0</b></span>
+        </div>
+      </div>
+
+      <div class="grid-layout">
+
+        <!-- Hall Management -->
+        <div class="panel">
+          <div class="panel-head"><i class="fa-solid fa-building"></i> Hall Management</div>
+          <div class="hall-form">
+            <div class="hall-form-name form-field">
+              <label class="form-label">Hall Name</label>
+              <input id="newHallName" type="text" placeholder="e.g., Hall 301" class="inp">
+            </div>
+            <div class="hall-form-row">
+              <div class="form-field">
+                <label class="form-label">Rows</label>
+                <input id="newHallRows" type="number" placeholder="6" class="inp" min="1">
+              </div>
+              <div class="form-field">
+                <label class="form-label">Cols</label>
+                <input id="newHallCols" type="number" placeholder="8" class="inp" min="2" step="2">
+              </div>
+              <div style="align-self:flex-end;flex-shrink:0;">
+                <button onclick="addHall()" class="action-btn primary" style="height:41px;">
+                  <i class="fa-solid fa-plus"></i> Add
+                </button>
+              </div>
+            </div>
+          </div>
+          <div id="hallsContainer" class="scroll-list"></div>
+        </div>
+
+        <!-- Config & Staff -->
+        <div class="panel">
+          <div class="panel-head"><i class="fa-solid fa-gear"></i> Exam Configuration</div>
+          <div class="cfg-grid">
+            <div class="cfg-field">
+              <label><i class="fa-solid fa-file-lines"></i> Exam Title</label>
+              <input id="examTitle" type="text" value="End Semester Examination" class="inp" onchange="saveData();showToast('Title saved.','success');">
+            </div>
+            <div class="cfg-field">
+              <label><i class="fa-solid fa-calendar-day"></i> Date</label>
+              <input id="examDate" type="date" class="inp" onchange="saveData();showToast('Date saved.','success');">
+            </div>
+            <div class="cfg-field">
+              <label><i class="fa-solid fa-clock"></i> Session</label>
+              <select id="examSession" class="inp" onchange="saveData();autoSetSessionTimes();showToast('Session → '+this.options[this.selectedIndex].text+'.','success');">
+                <option value="FN">Forenoon (FN)</option>
+                <option value="AN">Afternoon (AN)</option>
+              </select>
+            </div>
+            <div class="cfg-field" style="grid-column:span 1;">
+              <label><i class="fa-solid fa-play"></i> Start Time</label>
+              <input id="sessionStart" type="time" value="09:00" class="inp" onchange="saveData();showToast('Start time saved.','success');">
+            </div>
+            <div class="cfg-field" style="grid-column:span 1;">
+              <label><i class="fa-solid fa-stop"></i> End Time</label>
+              <input id="sessionEnd" type="time" value="12:00" class="inp" onchange="saveData();showToast('End time saved.','success');">
+            </div>
+          </div>
+          <div class="panel-head" style="margin-top:18px;"><i class="fa-solid fa-user-tie"></i> Staff Management</div>
+          <div class="staff-form">
+            <div class="staff-form-row">
+              <div class="form-field">
+                <label class="form-label">Full Name</label>
+                <input id="newStaffFullName" type="text" placeholder="Staff Full Name" class="inp">
+              </div>
+              <div class="form-field">
+                <label class="form-label">Designation</label>
+                <input id="newStaffDesignation" type="text" placeholder="e.g., Lecturer" class="inp">
+              </div>
+            </div>
+            <div class="staff-form-row">
+              <div class="form-field">
+                <label class="form-label">Username</label>
+                <input id="newStaffName" type="text" placeholder="Login Username" class="inp">
+              </div>
+              <div class="form-field">
+                <label class="form-label">Password</label>
+                <input id="newStaffPass" type="text" placeholder="Password" class="inp">
+              </div>
+              <div style="align-self:flex-end;flex-shrink:0;">
+                <button onclick="addStaff()" class="action-btn primary" style="height:41px;">
+                  <i class="fa-solid fa-plus"></i> Add
+                </button>
+              </div>
+            </div>
+          </div>
+          <div id="staffListContainer" class="scroll-list"></div>
+        </div>
+
+        <div id="dcContainer" style="display:none"></div>
+        <!-- Student Batches -->
+        <div class="panel full-width">
+          <div class="panel-head"><i class="fa-solid fa-users"></i> Student Batches</div>
+          <div class="batch-input-grid">
+            <div class="batch-field-group">
+              <label class="batch-label"><i class="fa-solid fa-calendar-alt"></i> Year</label>
+              <select id="batchYear" class="inp" onchange="autoFillPrefix()">
+                <option value="">— Year —</option>
+                <option value="I">I Year</option>
+                <option value="II">II Year</option>
+                <option value="III">III Year</option>
+                <option value="IV">IV Year</option>
+              </select>
+            </div>
+            <div class="batch-field-group">
+              <label class="batch-label"><i class="fa-solid fa-building-columns"></i> Department</label>
+              <select id="batchDept" class="inp" onchange="autoFillPrefix()">
+                <option value="">— Dept —</option>
+                <option value="CSE">CSE</option><option value="ECE">ECE</option>
+                <option value="EEE">EEE</option><option value="MECH">MECH</option>
+                <option value="CIVIL">CIVIL</option><option value="IT">IT</option>
+                <option value="AIDS">AIDS</option><option value="AIML">AIML</option>
+                <option value="MCE">MCE</option><option value="BCA">BCA</option>
+                <option value="MCA">MCA</option><option value="MBA">MBA</option>
+              </select>
+            </div>
+            <div class="batch-field-group subject-field-group">
+              <label class="batch-label"><i class="fa-solid fa-book-open"></i> Subject</label>
+              <div class="subject-input-row">
+                <select id="batchSubject" class="inp subject-select"></select>
+                <button type="button" onclick="openAddSubjectModal()" class="btn-icon btn-primary add-subject-btn" title="Add new subject">
+                  <i class="fa-solid fa-plus"></i>
+                </button>
+              </div>
+            </div>
+            <div class="batch-field-group">
+              <label class="batch-label"><i class="fa-solid fa-tag"></i> Prefix</label>
+              <input id="batchPrefix" type="text" placeholder="e.g., 24AID" class="inp">
+            </div>
+            <div class="batch-field-group">
+              <label class="batch-label"><i class="fa-solid fa-arrow-right-to-bracket"></i> Start</label>
+              <input id="batchStart" type="number" placeholder="1" class="inp" min="1">
+            </div>
+            <div class="batch-field-group">
+              <label class="batch-label"><i class="fa-solid fa-arrow-right-from-bracket"></i> End</label>
+              <input id="batchEnd" type="number" placeholder="66" class="inp" min="1">
+            </div>
+            <div class="batch-field-group batch-add-col">
+              <label class="batch-label">&nbsp;</label>
+              <button onclick="addBatch()" class="action-btn primary batch-add-btn">
+                <i class="fa-solid fa-plus"></i> Add
+              </button>
+            </div>
+          </div>
+          <div id="batchesContainer" class="batches-grid"></div>
+        </div>
+
+        <!-- Admin Accounts -->
+        <div class="panel full-width">
+          <div class="panel-head"><i class="fa-solid fa-user-shield"></i> Manage Admin Accounts</div>
+          <div class="input-row">
+            <input id="newAdminUser" type="text" placeholder="New Admin Username" class="inp" style="flex:1.5">
+            <input id="newAdminPass" type="password" placeholder="Password" class="inp" style="flex:1.5">
+            <button onclick="addAdminAccount()" class="btn-icon btn-primary" title="Add Admin">
+              <i class="fa-solid fa-plus"></i>
+            </button>
+          </div>
+          <div id="adminAccountsContainer" class="scroll-list"></div>
+        </div>
+
+        <!-- Allocation & Print -->
+        <div class="panel full-width">
+          <div class="panel-head"><i class="fa-solid fa-shuffle"></i> Allocation &amp; Print Reports</div>
+          <div class="action-bar">
+            <button onclick="generateAllocation()" class="action-btn primary">
+              <i class="fa-solid fa-shuffle"></i> Generate Allocation
+            </button>
+            <button onclick="printType('door')" class="action-btn secondary">
+              <i class="fa-solid fa-door-closed"></i> Door Notices
+            </button>
+            <button onclick="printType('notice')" class="action-btn secondary">
+              <i class="fa-solid fa-clipboard-list"></i> Notice Board
+            </button>
+            <button onclick="printType('staff')" class="action-btn secondary">
+              <i class="fa-solid fa-list-check"></i> Staff Sheets
+            </button>
+            <button onclick="printOnlineAttendance()" class="action-btn secondary" style="background:#f0fdf4;color:#065f46;border:1.5px solid #6ee7b7;">
+              <i class="fa-solid fa-print"></i> Print Attendance
+            </button>
+          </div>
+        </div>
+
+        <!-- Unified Reports + Edit Attendance Panel -->
+        <div class="panel full-width">
+
+          <!-- Panel Header with Tabs -->
+          <div class="report-panel-head">
+            <div class="report-panel-title">
+              <i class="fa-solid fa-chart-bar"></i>
+              Attendance &amp; Malpractice Reports
+            </div>
+          <div class="report-tabs">
+              <button class="rtab active" id="rtab-stats" onclick="switchReportTab('stats')">
+                <i class="fa-solid fa-eye"></i> View Stats
+              </button>
+              <button class="rtab" id="rtab-edit" onclick="switchReportTab('edit')">
+                <i class="fa-solid fa-pen-to-square"></i> Edit Attendance
+              </button>
+            </div>
+          </div>
+
+          <!-- TAB 1: View Stats -->
+          <div id="reportTab-stats" class="report-tab-content active">
+            <div class="att-stats-grid">
+              <div class="att-stat-card att-present">
+                <i class="fa-solid fa-circle-check"></i>
+                <div class="att-stat-text">
+                  <span class="att-stat-val" id="viewStatP">0</span>
+                  <span class="att-stat-lbl">Present</span>
+                </div>
+              </div>
+              <div class="att-stat-card att-absent">
+                <i class="fa-solid fa-circle-xmark"></i>
+                <div class="att-stat-text">
+                  <span class="att-stat-val" id="viewStatA">0</span>
+                  <span class="att-stat-lbl">Absent</span>
+                </div>
+              </div>
+              <div class="att-stat-card att-late">
+                <i class="fa-solid fa-clock"></i>
+                <div class="att-stat-text">
+                  <span class="att-stat-val" id="viewStatL">0</span>
+                  <span class="att-stat-lbl">Late</span>
+                </div>
+              </div>
+              <div class="att-stat-card att-od">
+                <i class="fa-solid fa-file-lines"></i>
+                <div class="att-stat-text">
+                  <span class="att-stat-val" id="viewStatOD">0</span>
+                  <span class="att-stat-lbl">On Duty</span>
+                </div>
+              </div>
+            </div>
+            <div id="attendanceReport" class="report-area"></div>
+          </div>
+
+          <!-- TAB 2: Edit Attendance -->
+          <div id="reportTab-edit" class="report-tab-content">
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;">
+              <div style="flex:1;min-width:200px;max-width:360px;">
+                <select id="adminHallSelect" class="inp" onchange="renderAdminSeats()">
+                  <option value="">— Select Examination Hall —</option>
+                </select>
+              </div>
+              <div style="flex:1;min-width:200px;max-width:320px;position:relative;">
+                <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:13px;pointer-events:none;"></i>
+                <input id="adminSeatSearch" type="text" placeholder="Search all halls by roll no…"
+                  class="inp" style="padding-left:34px;"
+                  oninput="renderAdminSeatsFiltered(this.value)">
+              </div>
+              <button onclick="adminMarkAll('p')" style="padding:0 16px;height:41px;background:#d1fae5;color:#065f46;border:1.5px solid #6ee7b7;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">
+                <i class="fa-solid fa-check-double"></i> Mark All Present
+              </button>
+            </div>
+            <p class="info-text"><i class="fa-solid fa-info-circle"></i> Click any seat to cycle: Present → Absent → Late → OD → None</p>
+            <div id="adminSeatGrid" class="bench-area"></div>
+          </div>
+
+        </div>
+
+        <!-- Tab Switcher Script (inline, no external dependencies) -->
+        <script>
+        function switchReportTab(name) {
+          ['stats','edit'].forEach(function(t) {
+            document.getElementById('reportTab-' + t).classList.toggle('active', t === name);
+            var btn = document.getElementById('rtab-' + t);
+            if (btn) btn.classList.toggle('active', t === name);
+          });
+        }
+        // Sync viewStat values from live monitor pills
+        function syncViewStats() {
+          var ids = {P:'monP', A:'monA', L:'monL', OD:'monOD'};
+          ['P','A','L','OD'].forEach(function(k) {
+            var src = document.getElementById(ids[k]);
+            var dst = document.getElementById('viewStat' + k);
+            if (src && dst) dst.textContent = src.textContent;
+          });
+        }
+        setInterval(syncViewStats, 1500);
+        </script>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       STAFF DASHBOARD
+  ============================================================ -->
+  <div id="staffDashboard" class="dashboard-container" style="display:none">
+    <nav class="nav-bar">
+      <div class="logo">
+        <img src="/static/vetias.jpeg" alt="VET IAS" class="nav-logo-img" onerror="this.style.display='none'">
+        <span class="logo-text">Staff <b>Portal</b></span>
+      </div>
+      <div class="nav-actions">
+        <button onclick="refreshStaff()" class="nav-btn ghost" id="staffRefreshBtn">
+          <i class="fa-solid fa-rotate-right"></i> Refresh
+        </button>
+        <button onclick="openStaffEditAttendance()" class="nav-btn ghost" id="staffEditAttBtn" title="Edit Attendance">
+          <i class="fa-solid fa-pen-to-square"></i> Edit Attendance
+        </button>
+        <button onclick="logout()" class="nav-btn danger">
+          <i class="fa-solid fa-power-off"></i> Logout
+        </button>
+      </div>
+    </nav>
+
+    <div class="wrap">
+      <div class="panel">
+        <div class="panel-head-row">
+          <h2 id="staffHallName" class="hall-title"></h2>
+          <div class="legend-row">
+            <span class="legend-item legend-p">Present</span>
+            <span class="legend-item legend-a">Absent</span>
+            <span class="legend-item legend-l">Late</span>
+            <span class="legend-item legend-od">On Duty</span>
+            <span class="legend-item legend-dc">Discontinued</span>
+          </div>
+        </div>
+
+        <div id="staffLiveStats" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;"></div>
+
+        <div class="mal-box">
+          <div class="mal-box-head"><i class="fa-solid fa-triangle-exclamation"></i> Report Malpractice Incident</div>
+          <div class="input-row">
+            <select id="mpStudent" class="inp" style="flex:1.2">
+              <option value="">— Select Student —</option>
+            </select>
+            <input id="mpReason" type="text" placeholder="Describe the incident..." class="inp" style="flex:2">
+            <button onclick="reportMalpractice()" class="btn-icon btn-red">
+              <i class="fa-solid fa-flag"></i>
+            </button>
+          </div>
+        </div>
+
+        <p class="info-text">
+          <i class="fa-solid fa-hand-pointer"></i>
+          Click or drag across seats to mark: None → Present → Absent → Late → OD
+        </p>
+
+        <!-- Staff bench search bar -->
+        <div style="position:relative;margin-bottom:12px;">
+          <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:13px;pointer-events:none;z-index:1;"></i>
+          <input id="staffBenchSearch" type="text" placeholder="Search roll number to highlight…"
+            class="inp" style="padding-left:36px;width:100%;"
+            oninput="filterStaffBench(this.value)">
+        </div>
+
+        <div class="bench-layout">
+          <div class="screen-bar">
+            <i class="fa-solid fa-chalkboard"></i> BLACKBOARD (FRONT OF HALL) <i class="fa-solid fa-chalkboard"></i>
+          </div>
+          <div id="staffBenchArea" class="bench-area"></div>
+        </div>
+      </div>
+
+      <div class="staff-action-bar">
+        <button onclick="submitAttendance()" class="action-btn save" style="flex:1;justify-content:center;">
+          <i class="fa-solid fa-circle-check"></i> Submit Attendance
+        </button>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       STAFF EDIT ATTENDANCE MODAL
+  ============================================================ -->
+  <div id="staffEditAttModal" class="modal-overlay" style="display:none;" onclick="closeStaffEditAttModal(event)">
+    <div class="modal-box" style="max-width:700px;max-height:85vh;display:flex;flex-direction:column;">
+      <div class="modal-head">
+        <i class="fa-solid fa-pen-to-square"></i>
+        <span>Edit Attendance</span>
+        <button class="modal-close-btn" onclick="document.getElementById('staffEditAttModal').style.display='none'">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body" style="flex:1;overflow-y:auto;padding-bottom:8px;">
+        <div style="position:relative;margin-bottom:14px;">
+          <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:13px;pointer-events:none;"></i>
+          <input id="staffAttSearch" type="text" placeholder="Search by roll number…"
+            class="inp" style="padding-left:34px;"
+            oninput="renderStaffEditSeats(this.value)">
+        </div>
+        <p class="info-text" style="margin-bottom:10px;"><i class="fa-solid fa-hand-pointer"></i> Click a seat to cycle: None → Present → Absent → Late → OD</p>
+        <div id="staffEditSeatGrid" class="bench-area"></div>
+      </div>
+      <div class="modal-footer">
+        <button onclick="document.getElementById('staffEditAttModal').style.display='none'" class="action-btn secondary">Close</button>
+        <button onclick="saveStaffEditAttendance()" class="action-btn save">
+          <i class="fa-solid fa-floppy-disk"></i> Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>

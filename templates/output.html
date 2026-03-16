@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VET IAS — Examination Output</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+  <!-- ============================================================
+       SCREEN TOOLBAR
+  ============================================================ -->
+  <div class="toolbar no-print">
+    <div class="toolbar-brand">
+      <img src="/static/vetias.jpeg" alt="VET IAS" onerror="this.style.display='none'">
+      <span>VET <b>IAS</b></span>
+    </div>
+
+    <div class="mode-tabs">
+      <button class="mode-tab active" id="tab-notice" onclick="setMode('notice')">
+        <i class="fa-solid fa-clipboard-list"></i> Notice Board
+      </button>
+      <button class="mode-tab" id="tab-door" onclick="setMode('door')">
+        <i class="fa-solid fa-door-open"></i> Door Notice
+      </button>
+      <button class="mode-tab" id="tab-staff" onclick="setMode('staff')">
+        <i class="fa-solid fa-list-check"></i> Staff Sheet
+      </button>
+    </div>
+
+    <button class="print-btn" onclick="window.print()">
+      <i class="fa-solid fa-print"></i> Print
+    </button>
+  </div>
+
+  <!-- ============================================================
+       MAIN CONTENT
+  ============================================================ -->
+  <div id="content">
+    <div class="empty-state">
+      <i class="fa-solid fa-file-circle-question"></i>
+      <h2>Loading Output...</h2>
+      <p>Reading examination data from the management system.</p>
+    </div>
+  </div>
+
+  <!-- Bridge: read currentSessionId from localStorage if set by main app -->
+  <script>
+    // The main app writes 'vet_ias_session_id' when an allocation is saved to DB.
+    // output.html reads it so it can show DB-synced data.
+    window._dbSessionId = localStorage.getItem('vet_ias_session_id') || null;
+  </script>
+  <script src="/static/script.js"></script>
+</body>
+</html>
